@@ -1,22 +1,23 @@
-# YOLOv10 ONNXRuntime Engine in c++
+# YOLOv11 ONNXRuntime Engine in c++
 
 ## Overview
 
-This project is a C++ implementation of a YOLOv10 inference engine using the ONNX Runtime. It is heavily based on the project [yolov8-onnx-cpp by FourierMourier](https://github.com/FourierMourier/yolov8-onnx-cpp) and is updated from my original project [YOLOv8-ONNXRuntime-CPP by K4HVH](https://github.com/K4HVH/YOLOv8-ONNXRuntime-CPP). The primary goal of this implementation is to provide a streamlined and efficient object detection pipeline that can be easily modified to suit various client needs.
+This project is a C++ implementation of a YOLOv11 inference engine using the ONNX Runtime. It is heavily based on the project [yolov8-onnx-cpp by FourierMourier](https://github.com/FourierMourier/yolov8-onnx-cpp) and is updated from my original project [YOLOv8-ONNXRuntime-CPP by K4HVH](https://github.com/K4HVH/YOLOv8-ONNXRuntime-CPP). The primary goal of this implementation is to provide a streamlined and efficient object detection pipeline that can be easily modified to suit various client needs. This version has been heavily optimised, using AVX instructions to allow for extremely high-speed inferencing on modern systems.
 
 ## Features
 
 - **High Performance:** Optimized for speed to allow running inference in a loop at maximum speed.
 - **Simplicity:** Simplified codebase, focusing solely on object detection.
 - **Flexibility:** Easy to modify and extend to fit specific requirements.
-- **Greater Accuracy:** YOLOv10 has greater accuracy at the same inferencing speed compared to YoloV8.
-- **Faster Inferencing:** In testing, YOLOv10 runs 6% faster for the same size model.
+- **Greater Accuracy:** YOLOv11 has greater accuracy at the same inferencing speed compared to YoloV8.
+- **Faster Inferencing:** In testing, YOLOv11-ONNXRuntime-CPP runs 4 faster for the same size model compared to YOLOv8-ONNXRuntime-CPP.
 
 ## Prerequisites
 
 - **ONNX Runtime:** Make sure to have ONNX Runtime installed.
 - **OpenCV:** Required for image processing and display.
-- **C++ Compiler:** Compatible with C++23.
+- **C++ Compiler:** Compatible with C++11.
+- **AVX Instruction Set:** This project uses AVX512 or AVX2 for maximum performance
 
 ## Getting Started
 
@@ -24,8 +25,8 @@ This project is a C++ implementation of a YOLOv10 inference engine using the ONN
 1. **Clone the repository:**
 
 ```sh
-git clone https://github.com/K4HVH/YOLOv10-ONNXRuntime-CPP
-cd YOLOv10-ONNXRuntime-CPP
+git clone https://github.com/K4HVH/YOLOv11-ONNXRuntime-CPP
+cd YOLOv11-ONNXRuntime-CPP
 ```
 
 2. **Install dependencies:**
@@ -66,8 +67,8 @@ Modify the `imagePath` variable in `main.cpp` to point to your test image.
 
 ## Project Structure
 **main.cpp:** Entry point of the application. It initializes the inferencer and runs the detection on a sample image.
-**engine.hpp:** Header file for the YOLOv8 inferencer class, defining the structure and methods.
-**engine.cpp:** Implementation of the YOLOv8 inferencer, including preprocessing, forward pass, and postprocessing steps.
+**engine.hpp:** Header file for the YOLOv11 inferencer class, defining the structure and methods.
+**engine.cpp:** Implementation of the YOLOv11 inferencer, including preprocessing, forward pass, and postprocessing steps.
 
 ## Example Usage
 Here is a snippet from `main.cpp` demonstrating the usage:
@@ -81,7 +82,7 @@ Here is a snippet from `main.cpp` demonstrating the usage:
 
 int main()
 {
-    std::wstring modelPath = L"yolov10n.onnx";
+    std::wstring modelPath = L"yolo11n.onnx";
     const char* logid = "yolo_inference";
     const char* provider = "CPU"; // or "CUDA"
 
