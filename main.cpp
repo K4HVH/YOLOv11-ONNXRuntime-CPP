@@ -15,7 +15,7 @@ int main()
 {
     std::wstring modelPath = L"yolo11n.onnx";
     const char* logid = "yolo_inference";
-    const char* provider = "CUDA"; // or "CUDA"
+    const char* provider = "CPU"; // or "CUDA"
 
     YoloInferencer inferencer(modelPath, logid, provider);
 
@@ -27,11 +27,7 @@ int main()
         return -1;
     }
 
-    std::vector<Detection> detections = inferencer.infer(image, 0.1, 0.4);
-
-    for (int i = 0; i < 10; i++) {
-		detections = inferencer.infer(image, 0.1, 0.4);
-	}
+    std::vector<Detection> detections = inferencer.infer(image, 0.4, 0.5);
 
     for (const auto& detection : detections) {
         cv::rectangle(image, detection.box, cv::Scalar(0, 255, 0), 2);
