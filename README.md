@@ -67,7 +67,9 @@ Modify the `imagePath` variable in `main.cpp` to point to your test image.
 
 ## Project Structure
 **main.cpp:** Entry point of the application. It initializes the inferencer and runs the detection on a sample image.
+
 **engine.hpp:** Header file for the YOLOv11 inferencer class, defining the structure and methods.
+
 **engine.cpp:** Implementation of the YOLOv11 inferencer, including preprocessing, forward pass, and postprocessing steps.
 
 ## Example Usage
