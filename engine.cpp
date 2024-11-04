@@ -153,9 +153,18 @@ YoloInferencer::~YoloInferencer() {
 
 // This function does the preprocessing of the image and returns the tensor
 std::vector<Ort::Value> YoloInferencer::preprocess(cv::Mat& frame) {
-    if (has_avx512_ == false) {
-        has_avx512_ = check_avx512();
+    // Check SIMD support once
+    if (simd_support_ == SIMDSupport::UNINITIALIZED) {
+        simd_support_ = check_simd_support();
     }
+
+    if (simd_support_ == SIMDSupport::NONE) {
+		std::cout << "Warning: SIMD support is not available on this platform." << std::endl;
+	} else if (simd_support_ == SIMDSupport::AVX512) {
+		std::cout << "AVX512 support is available on this platform." << std::endl;
+	} else if (simd_support_ == SIMDSupport::AVX2) {
+		std::cout << "AVX2 support is available on this platform." << std::endl;
+	}
 
     rawImgSize_ = frame.size();
 
@@ -190,7 +199,7 @@ std::vector<Ort::Value> YoloInferencer::preprocess(cv::Mat& frame) {
     const uint8_t* src = padded.ptr<uint8_t>();
     float* dst = inputTensorValues_.data();
 
-    if (has_avx512_) {
+    if (simd_support_ == SIMDSupport::AVX512) {
         // AVX-512 implementation
         const __m512 scale = _mm512_set1_ps(1.0f / 255.0f);
 
@@ -237,7 +246,7 @@ std::vector<Ort::Value> YoloInferencer::preprocess(cv::Mat& frame) {
             }
         }
     }
-    else {
+    else if (simd_support_ == SIMDSupport::AVX2) {
         // Fallback to AVX2 for systems without AVX-512
         const __m256 scale = _mm256_set1_ps(1.0f / 255.0f);
 
@@ -284,6 +293,18 @@ std::vector<Ort::Value> YoloInferencer::preprocess(cv::Mat& frame) {
             }
         }
     }
+    else {
+        // Fallback path for non-x86 or CPUs without AVX
+#pragma omp parallel for schedule(static) collapse(2)
+        for (int c = 0; c < 3; c++) {
+            for (int i = 0; i < image_size; i++) {
+                const uint8_t* pixel = src + i * 3;
+                float* channel_ptr = dst + c * image_size;
+                // RGB order: R=2, G=1, B=0
+                channel_ptr[i] = pixel[2 - c] / 255.0f;
+            }
+        }
+    }
 
     // Create tensor
     std::vector<Ort::Value> inputTensors;
@@ -321,6 +342,7 @@ std::vector<Detection> YoloInferencer::postprocess(std::vector<Ort::Value>& outp
     * - Data for each attribute is stored contiguously for all detections
     * - To access attribute 'a' for detection 'i': data[i + a * num_detections]
     */
+
     int detection_attribute_size = outputShape[1];
     int num_detections = outputShape[2];
     int num_classes = detection_attribute_size - 4;

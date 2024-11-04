@@ -44,18 +44,36 @@ private:
     std::string task_;
 
     //std::vector<float> inputTensorValues_;
+    alignas(64) std::vector<float> inputTensorValues_;  // Ensure 64-byte alignment for AVX-512
 
     cv::Size cvSize_;
     cv::Size rawImgSize_;
 
-    bool has_avx512_ = false;
-    alignas(64) std::vector<float> inputTensorValues_;  // Ensure 64-byte alignment for AVX-512
+    enum class SIMDSupport {
+        UNINITIALIZED,
+        NONE,
+        AVX2,
+        AVX512
+    };
+    SIMDSupport simd_support_ = SIMDSupport::UNINITIALIZED;
 
-    // Check CPU features
-    bool check_avx512() {
-        int cpuInfo[4];
-        __cpuid(cpuInfo, 7);
-        return (cpuInfo[1] & (1 << 16)) != 0;  // Check AVX-512F support
+    SIMDSupport check_simd_support() {
+        #if defined(_WIN32) || defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+            int cpuInfo[4];
+
+            // Check for AVX-512
+            __cpuid(cpuInfo, 7);
+            if ((cpuInfo[1] & (1 << 16)) != 0) {  // Check AVX-512F
+                return SIMDSupport::AVX512;
+            }
+
+            // Check for AVX2
+            __cpuid(cpuInfo, 1);
+            if ((cpuInfo[2] & (1 << 28)) != 0) {  // Check AVX2
+                return SIMDSupport::AVX2;
+            }
+        #endif
+        return SIMDSupport::NONE;
     }
 
     // Helper functions, These were stolen and modified from https://github.com/FourierMourier/yolov8-onnx-cpp
